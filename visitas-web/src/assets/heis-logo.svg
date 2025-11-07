@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 200" role="img" aria-labelledby="title desc">
+  <title id="title">HEIS Global Logo</title>
+  <desc id="desc">Logotipo estilizado de HEIS Global Packaging Healthcare</desc>
+  <defs>
+    <linearGradient id="circleGradient" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0aa4ad" />
+      <stop offset="100%" stop-color="#0d8690" />
+    </linearGradient>
+  </defs>
+  <g fill="#0d8894">
+    <path d="M70 46h25v44h70V46h25v108h-25V108H95v46H70z" />
+    <path d="M218 46h98v22h-73v18h61v21h-61v23h73v24h-98z" />
+    <path d="M338 46h25v43l37.5-43H434l-45.8 53.4L438 154h-34.4l-27.6-34.7-12 13.6V154h-25z" />
+  </g>
+  <path fill="url(#circleGradient)" d="M478 46c-42 0-74 30.2-74 72.6S436 191 478 191s74-31 74-72.4S520 46 478 46zm0 49.8c13.5 0 24.7 10.9 24.7 24.5S491.4 145 478 145c-13.7 0-24.8-10.9-24.8-24.7S464.2 95.8 478 95.8z" />
+  <text x="70" y="182" fill="#6b7b8c" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="30" letter-spacing="1.5">
+    PACKAGING HEALTHCARE
+  </text>
+  <text x="354" y="172" fill="#7b8999" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="28">
+    global
+  </text>
+</svg>
+

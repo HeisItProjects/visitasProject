@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { createVisit, uploadSignature } from '../../services/supabaseClient'
+import { createVisit } from '../../services/supabaseClient'
 import SignaturePad from './SignaturePad'
 
 const initialValues = {
@@ -89,11 +89,13 @@ function VisitEntryForm({ onSuccess }) {
       }
 
       const signatureDataUrl = signaturePad.getDataUrl()
-      const { publicUrl } = await uploadSignature(signatureDataUrl)
 
       await createVisit({
         ...payload,
-        firma: publicUrl,
+        firma: signatureDataUrl,
+        salida: false,
+        fechasalida: null,
+        horasalida: null,
       })
 
       setSubmitSuccess(true)
@@ -104,8 +106,9 @@ function VisitEntryForm({ onSuccess }) {
         onSuccess()
       }
     } catch (error) {
-      setSubmitError('No se ha podido registrar la visita. Inténtelo de nuevo.')
-      console.error(error)
+      const message = error instanceof Error ? error.message : 'Error desconocido'
+      setSubmitError(`No se ha podido registrar la visita. ${message}`)
+      console.error('Error al registrar visita:', error)
     } finally {
       setIsSubmitting(false)
     }

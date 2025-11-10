@@ -140,6 +140,48 @@ export async function fetchOpenVisits() {
   return response.json()
 }
 
+export async function searchOpenVisits(filters = {}) {
+  if (!baseRestUrl || !SUPABASE_ANON_KEY) {
+    throw new Error('Supabase no está configurado correctamente.')
+  }
+
+  const params = new URLSearchParams({
+    select: 'id,nombrepersona,nombreempresa,fechavisita,horavisita',
+    salida: 'eq.false',
+    order: 'created_at.desc',
+  })
+
+  if (filters.nombrepersona && filters.nombrepersona.trim()) {
+    params.append('nombrepersona', `ilike.*${filters.nombrepersona.trim()}*`)
+  }
+  if (filters.nombreempresa && filters.nombreempresa.trim()) {
+    params.append('nombreempresa', `ilike.*${filters.nombreempresa.trim()}*`)
+  }
+
+  const response = await fetch(`${baseRestUrl}/visitas?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      Accept: 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    let message = 'No se pudo buscar las visitas.'
+    try {
+      const body = await response.json()
+      if (body?.message) message = body.message
+    } catch {
+      const text = await response.text()
+      if (text) message = text
+    }
+    throw new Error(message)
+  }
+
+  return response.json()
+}
+
 export async function markVisitAsExited(id, { fechasalida, horasalida }) {
   if (!baseRestUrl || !SUPABASE_ANON_KEY) {
     throw new Error('Supabase no está configurado correctamente.')
@@ -195,5 +237,45 @@ export function getCurrentTimeString() {
   const minutes = String(d.getMinutes()).padStart(2, '0')
   const seconds = String(d.getSeconds()).padStart(2, '0')
   return `${hours}:${minutes}:${seconds}`
+}
+
+export async function loginUser(nombre, contrasena) {
+  if (!baseRestUrl || !SUPABASE_ANON_KEY) {
+    throw new Error('Supabase no está configurado correctamente.')
+  }
+
+  const params = new URLSearchParams({
+    select: 'id,nombre,contrasena',
+    nombre: `eq.${nombre}`,
+    contrasena: `eq.${contrasena}`,
+  })
+
+  const response = await fetch(`${baseRestUrl}/users?${params.toString()}`, {
+    method: 'GET',
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      Accept: 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    let message = 'Error al verificar las credenciales.'
+    try {
+      const body = await response.json()
+      if (body?.message) message = body.message
+    } catch {
+      const text = await response.text()
+      if (text) message = text
+    }
+    throw new Error(message)
+  }
+
+  const data = await response.json()
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error('Usuario o contraseña incorrectos.')
+  }
+
+  return data[0]
 }
 

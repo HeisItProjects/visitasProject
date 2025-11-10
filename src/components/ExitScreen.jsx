@@ -1,42 +1,51 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import heisLogo from '../assets/branding/heis_logo.png'
 import {
-  fetchOpenVisits,
   getCurrentTimeString,
   getTodayDateString,
   markVisitAsExited,
+  searchOpenVisits,
 } from '../services/supabaseClient'
 
 function ExitScreen({ onBack }) {
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [visits, setVisits] = useState([])
   const [processingId, setProcessingId] = useState(null)
   const [ratingForId, setRatingForId] = useState(null)
   const [rating, setRating] = useState(null)
+  const [hasSearched, setHasSearched] = useState(false)
+  const [searchFilters, setSearchFilters] = useState({
+    nombrepersona: '',
+    nombreempresa: '',
+  })
 
   const hasItems = useMemo(() => Array.isArray(visits) && visits.length > 0, [visits])
   const emojis = ['😡','😠','😕','🙁','😐','🙂','😊','😃','😄','🤩']
 
-  useEffect(() => {
-    let cancelled = false
-    const load = async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const data = await fetchOpenVisits()
-        if (!cancelled) setVisits(data)
-      } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Error desconocido')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
+  const handleSearch = async (event) => {
+    event.preventDefault()
+    setLoading(true)
+    setError(null)
+    setHasSearched(false)
+    setVisits([])
+    try {
+      const data = await searchOpenVisits(searchFilters)
+      setVisits(data)
+      setHasSearched(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al buscar visitas.')
+    } finally {
+      setLoading(false)
     }
-    load()
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  }
+
+  const handleFilterChange = (field) => (event) => {
+    setSearchFilters((prev) => ({
+      ...prev,
+      [field]: event.target.value,
+    }))
+  }
 
   const handleExitClick = (id) => {
     if (!id || processingId) return
@@ -75,37 +84,79 @@ function ExitScreen({ onBack }) {
       </header>
 
       <div className="screen__content">
+        <form className="search-form" onSubmit={handleSearch}>
+          <div className="search-form__grid">
+            <div className="form-field">
+              <label className="form-label" htmlFor="search-nombrepersona">
+                Nombre de la visita
+              </label>
+              <input
+                id="search-nombrepersona"
+                name="nombrepersona"
+                type="text"
+                className="text-input"
+                placeholder="Ej. Ana Gómez"
+                value={searchFilters.nombrepersona}
+                onChange={handleFilterChange('nombrepersona')}
+                autoComplete="off"
+              />
+            </div>
+            <div className="form-field">
+              <label className="form-label" htmlFor="search-nombreempresa">
+                Empresa
+              </label>
+              <input
+                id="search-nombreempresa"
+                name="nombreempresa"
+                type="text"
+                className="text-input"
+                placeholder="Ej. Empresa S.L."
+                value={searchFilters.nombreempresa}
+                onChange={handleFilterChange('nombreempresa')}
+                autoComplete="off"
+              />
+            </div>
+          </div>
+          <div className="search-form__actions">
+            <button type="submit" className="primary-button" disabled={loading}>
+              {loading ? 'Buscando…' : 'Buscar'}
+            </button>
+          </div>
+        </form>
+
         {error ? <p className="form-alert form-alert--error">{error}</p> : null}
 
-        {loading ? (
-          <div className="placeholder-card">Cargando visitas…</div>
-        ) : hasItems ? (
-          <ul className="exit-list" role="list">
-            {visits.map((v) => (
-              <li key={v.id}>
-                <button
-                  type="button"
-                  className="exit-list__item"
-                  onClick={() => handleExitClick(v.id)}
-                  disabled={processingId === v.id}
-                >
-                  <span className="exit-list__name">{v.nombrepersona}</span>
-                  {v.nombreempresa ? (
-                    <span className="exit-list__company">{v.nombreempresa}</span>
-                  ) : null}
-                  <span className="exit-list__time">
-                    Entrada: {v.fechavisita} {v.horavisita?.slice(0, 5)}
-                  </span>
-                  <span className="exit-list__cta">
-                    {processingId === v.id ? 'Registrando…' : 'Registrar salida'}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="placeholder-card">No hay visitas pendientes de salida.</div>
-        )}
+        {hasSearched && !loading ? (
+          hasItems ? (
+            <ul className="exit-list" role="list">
+              {visits.map((v) => (
+                <li key={v.id}>
+                  <button
+                    type="button"
+                    className="exit-list__item"
+                    onClick={() => handleExitClick(v.id)}
+                    disabled={processingId === v.id}
+                  >
+                    <span className="exit-list__name">{v.nombrepersona}</span>
+                    {v.nombreempresa ? (
+                      <span className="exit-list__company">{v.nombreempresa}</span>
+                    ) : null}
+                    <span className="exit-list__time">
+                      Entrada: {v.fechavisita} {v.horavisita?.slice(0, 5)}
+                    </span>
+                    <span className="exit-list__cta">
+                      {processingId === v.id ? 'Registrando…' : 'Registrar salida'}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="placeholder-card">
+              No se encontraron visitas con los criterios de búsqueda.
+            </div>
+          )
+        ) : null}
       </div>
 
       <button type="button" className="secondary-button" onClick={onBack}>

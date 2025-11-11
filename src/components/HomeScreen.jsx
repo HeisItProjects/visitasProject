@@ -50,7 +50,7 @@ function HomeScreen({ onSelect }) {
         >
           <span className="icon icon--log" aria-hidden="true">🗒️</span>
         </button>
-        <p className="screen__eyebrow">Bienvenidos a</p>
+        <p className="screen__eyebrow screen__eyebrow--home">Bienvenidos a</p>
         <img className="screen__brand" src={heisLogo} alt="HEIS Global" />
         <p className="screen__subtitle">Selecciona una opción para continuar</p>
       </header>

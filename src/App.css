@@ -19,6 +19,11 @@
   color: #0f7e8c;
 }
 
+.screen__eyebrow--home {
+  font-size: clamp(1.3rem, 2.5vw, 1.6rem);
+  margin-bottom: clamp(0.5rem, 1.5vh, 1rem);
+}
+
 .screen__brand {
   display: block;
   width: clamp(260px, 34vw, 460px);

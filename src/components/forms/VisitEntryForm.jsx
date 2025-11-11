@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
-import { createVisit } from '../../services/supabaseClient'
+import { createVisit, getTodayDateString } from '../../services/supabaseClient'
 import SignaturePad from './SignaturePad'
+import { printLabel } from '../../services/labelPrinter'
 
 const initialValues = {
   nombreempresa: '',
@@ -90,13 +91,36 @@ function VisitEntryForm({ onSuccess }) {
 
       const signatureDataUrl = signaturePad.getDataUrl()
 
-      await createVisit({
+      const visitResult = await createVisit({
         ...payload,
         firma: signatureDataUrl,
         salida: false,
         fechasalida: null,
         horasalida: null,
       })
+
+      // Obtener la fecha de entrada de la respuesta o usar la fecha actual
+      const fechavisita = Array.isArray(visitResult) && visitResult[0]?.fechavisita
+        ? visitResult[0].fechavisita
+        : Array.isArray(visitResult) && visitResult[0]?.created_at
+        ? visitResult[0].created_at.split('T')[0]
+        : !Array.isArray(visitResult) && visitResult?.fechavisita
+        ? visitResult.fechavisita
+        : !Array.isArray(visitResult) && visitResult?.created_at
+        ? visitResult.created_at.split('T')[0]
+        : getTodayDateString()
+
+      // Imprimir la etiqueta
+      try {
+        await printLabel({
+          nombrepersona: formValues.nombrepersona.trim(),
+          nombreempresa: formValues.nombreempresa || null,
+          fechavisita,
+        })
+      } catch (printError) {
+        console.error('Error al imprimir etiqueta:', printError)
+        // No bloqueamos el flujo si falla la impresión
+      }
 
       setSubmitSuccess(true)
       resetForm()
